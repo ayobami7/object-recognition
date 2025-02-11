@@ -1,4 +1,3 @@
-# utils.py
 import cv2
 
 def draw_boxes(frame, boxes, centroids, violations):
