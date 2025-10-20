@@ -6,10 +6,16 @@ class SocialDistancingDetector:
     def __init__(self, weights_path, config_path, classes_path):
         self.net = cv2.dnn.readNet(weights_path, config_path)
         self.layer_names = self.net.getLayerNames()
-        self.output_layers = [self.layer_names[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
+
+        unconnected = self.net.getUnconnectedOutLayers()
+        if len(unconnected.shape) == 1:
+            self.output_layers = [self.layer_names[i - 1] for i in unconnected]
+        else:
+            self.output_layers = [self.layer_names[i[0] - 1] for i in unconnected]
+        
         with open(classes_path, "r") as f:
             self.classes = [line.strip() for line in f.readlines()]
-
+            
     def detect_people(self, frame):
         height, width, _ = frame.shape
         blob = cv2.dnn.blobFromImage(frame, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
