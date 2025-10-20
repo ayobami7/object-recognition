@@ -65,7 +65,7 @@ social_distancing_monitor/
 
 3. **Download YOLOv3 Files**:
    - Download the following files and place them in the project root:
-     - `yolov3.weights`: [Download](https://pjreddie.com/media/files/yolov3.weights)
+     - `yolov3.weights`: [Download](https://pjreddie.com/files/yolov3.weights)
      - `yolov3.cfg`: [Download](https://github.com/pjreddie/darknet/blob/master/cfg/yolov3.cfg)
      - `coco.names`: [Download](https://github.com/pjreddie/darknet/blob/master/data/coco.names)
 
