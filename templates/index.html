@@ -7,7 +7,55 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Social Distancing Monitor</h1>
-    <img src="{{ url_for('video_feed') }}" width="800">
+    <div class="container">
+        <header>
+            <h1>🛡️ Social Distancing Monitor</h1>
+            <p class="subtitle">Real-time COVID-19 Safety Compliance System</p>
+        </header>
+
+        <div class="main-content">
+            <div class="video-container">
+                <img src="{{ url_for('video_feed') }}" alt="Live Video Feed">
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Status</h3>
+                    <div class="value">🟢 Active</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Detection</h3>
+                    <div class="value">YOLOv3</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Mode</h3>
+                    <div class="value">Live Feed</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>Color Legend</h2>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="color-box safe"></div>
+                        <span><strong>Green:</strong> Safe Distance</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-box violation"></div>
+                        <span><strong>Red:</strong> Violation Detected</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>How It Works</h2>
+                <p style="color: #666; line-height: 1.6;">
+                    This system uses YOLOv3 deep learning model to detect people in real-time. 
+                    It calculates the distance between detected individuals and flags violations 
+                    when people are too close to each other (less than the safe distance threshold).
+                </p>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
