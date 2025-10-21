@@ -1,7 +1,7 @@
 flask
 # opencv-python
 opencv-python-headless==4.8.1.78
-numpy
-scipy
-imutils
+numpy==1.24.3
+scipy==1.11.4
+imutils==0.5.4
 gunicorn==21.2.0
