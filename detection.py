@@ -3,20 +3,42 @@ import numpy as np
 from scipy.spatial import distance as dist
 
 class SocialDistancingDetector:
+    """Handles person detection using YOLOv3 and social distancing checks"""
+    
     def __init__(self, weights_path, config_path, classes_path):
+        """
+        Initialize YOLO detector
+        
+        Args:
+            weights_path: Path to yolov3.weights
+            config_path: Path to yolov3.cfg
+            classes_path: Path to coco.names
+        """
         self.net = cv2.dnn.readNet(weights_path, config_path)
         self.layer_names = self.net.getLayerNames()
-
+        
+        # Fix for different OpenCV versions
         unconnected = self.net.getUnconnectedOutLayers()
         if len(unconnected.shape) == 1:
+            # OpenCV 4.5.4+
             self.output_layers = [self.layer_names[i - 1] for i in unconnected]
         else:
+            # Older OpenCV versions
             self.output_layers = [self.layer_names[i[0] - 1] for i in unconnected]
         
         with open(classes_path, "r") as f:
             self.classes = [line.strip() for line in f.readlines()]
-            
+
     def detect_people(self, frame):
+        """
+        Run YOLO detection on frame
+        
+        Args:
+            frame: Input image as numpy array
+            
+        Returns:
+            tuple: (outputs from YOLO, frame height, frame width)
+        """
         height, width, _ = frame.shape
         blob = cv2.dnn.blobFromImage(frame, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
         self.net.setInput(blob)
@@ -24,29 +46,67 @@ class SocialDistancingDetector:
         return outs, height, width
 
     def process_frame(self, frame, outs, width, height, threshold=0.5):
+        """
+        Process YOLO outputs to extract person bounding boxes
+        
+        Args:
+            frame: Input image
+            outs: YOLO network outputs
+            width: Frame width
+            height: Frame height
+            threshold: Confidence threshold (default 0.5)
+            
+        Returns:
+            tuple: (list of bounding boxes, list of centroids)
+        """
         boxes = []
         centroids = []
+        
         for out in outs:
             for detection in out:
                 scores = detection[5:]
                 class_id = np.argmax(scores)
                 confidence = scores[class_id]
-                if confidence > threshold and class_id == 0:  # Class ID 0 is for "person"
+                
+                # Filter for person class (class_id = 0) with sufficient confidence
+                if confidence > threshold and class_id == 0:
+                    # Convert normalized coordinates to pixels
                     center_x = int(detection[0] * width)
                     center_y = int(detection[1] * height)
                     w = int(detection[2] * width)
                     h = int(detection[3] * height)
+                    
+                    # Calculate top-left corner
                     x = int(center_x - w / 2)
                     y = int(center_y - h / 2)
+                    
                     boxes.append([x, y, w, h])
                     centroids.append((center_x, center_y))
+        
         return boxes, centroids
 
     def check_distancing(self, centroids, threshold=100):
+        """
+        Check for social distancing violations
+        
+        Args:
+            centroids: List of (x, y) tuples representing person centers
+            threshold: Minimum distance in pixels (default 100)
+            
+        Returns:
+            set: Indices of people violating social distancing
+        """
         violations = set()
+        
+        # Check all pairs of people
         for i in range(len(centroids)):
             for j in range(i + 1, len(centroids)):
-                if dist.euclidean(centroids[i], centroids[j]) < threshold:
+                # Calculate Euclidean distance
+                distance = dist.euclidean(centroids[i], centroids[j])
+                
+                # If too close, mark both as violators
+                if distance < threshold:
                     violations.add(i)
                     violations.add(j)
+        
         return violations
