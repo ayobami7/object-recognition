@@ -5,7 +5,8 @@ class Config:
     CAMERA_ID = 0
     FRAME_WIDTH = 640
     FRAME_HEIGHT = 480
-    DISPLAY_WIDTH = 800
+    DISPLAY_WIDTH = 640
+    DISPLAY_HEIGHT = 480
     
     # YOLO settings
     YOLO_WEIGHTS = "yolov3.weights"
