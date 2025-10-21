@@ -3,3 +3,4 @@ opencv-python
 numpy
 scipy
 imutils
+gunicorn==21.2.0

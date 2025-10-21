@@ -24,17 +24,20 @@ A real-time social distancing monitoring system that uses **YOLOv3** for object 
 
 ```
 social_distancing_monitor/
-│
-├── app.py                  # Flask web app (main entry point)
-├── camera.py               # Handles camera input and frame processing
-├── detection.py            # Handles object detection and social distancing logic
-├── utils.py                # Utility functions (e.g., distance calculation, drawing)
-├── templates/              # HTML templates for the web app
-│   └── index.html
-├── static/                 # Static files (CSS, JS, etc.)
+├── app.py                  # Main Flask application
+├── camera.py               # Video capture handler
+├── detection.py            # YOLO detection & distancing logic
+├── utils.py                # Drawing utilities
+├── config.py               # Configuration settings
+├── requirements.txt        # Python dependencies
+├── .gitignore             
+├── templates/
+│   └── index.html         # Web interface
+├── static/                # CSS/JS files
 │   └── styles.css
-├── requirements.txt        # List of dependencies
-└── README.md               # Project documentation
+├── yolov3.weights         # (237 MB)
+├── yolov3.cfg             
+└── coco.names             
 ```
 
 ---

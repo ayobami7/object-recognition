@@ -1,3 +1,4 @@
+import os
 import cv2
 import imutils
 
@@ -11,10 +12,19 @@ class VideoCamera:
         Args:
             camera_id: Camera device ID (0 for default webcam)
         """
-        self.cap = cv2.VideoCapture(camera_id)
+        video_file = os.environ.get('VIDEO_FILE', 'sample_video.mp4')
+        
+        if os.path.exists(video_file):
+            print(f"Using video file: {video_file}")
+            self.cap = cv2.VideoCapture(video_file)
+            self.is_video_file = True
+        else:
+            print("Using webcam...")
+            self.cap = cv2.VideoCapture(camera_id)
+            self.is_video_file = False
         
         if not self.cap.isOpened():
-            raise Exception(f"Could not open camera {camera_id}")
+            raise Exception(f"Could not open video source")
         
         # Set camera resolution
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
