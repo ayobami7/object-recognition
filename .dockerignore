@@ -1,0 +1,8 @@
+__pycache__
+*.pyc
+.git
+.env
+*.db
+*.log
+yolov3.weights
+test_output/
