@@ -1,57 +1,62 @@
 import cv2
 import numpy as np
 from scipy.spatial import distance as dist
+from ultralytics import YOLO
 
 class SocialDistancingDetector:
     """Handles person detection using YOLOv3 and social distancing checks"""
+    def __init__(self):
+        # Load YOLOv8 model 
+        self.model = YOLO('yolov8n.pt')  
     
-    def __init__(self, weights_path, config_path, classes_path):
-        """
-        Initialize YOLO detector
+    # def __init__(self, weights_path, config_path, classes_path):
+    #     """
+    #     Initialize YOLO detector
         
-        Args:
-            weights_path: Path to yolov3.weights
-            config_path: Path to yolov3.cfg
-            classes_path: Path to coco.names
-        """
-        self.net = cv2.dnn.readNet(weights_path, config_path)
-        self.layer_names = self.net.getLayerNames()
+    #     Args:
+    #         weights_path: Path to yolov3.weights
+    #         config_path: Path to yolov3.cfg
+    #         classes_path: Path to coco.names
+    #     """
+    #     self.net = cv2.dnn.readNet(weights_path, config_path)
+    #     self.layer_names = self.net.getLayerNames()
         
-        # Fix for different OpenCV versions
-        unconnected = self.net.getUnconnectedOutLayers()
-        if len(unconnected.shape) == 1:
-            # OpenCV 4.5.4+
-            self.output_layers = [self.layer_names[i - 1] for i in unconnected]
-        else:
-            # Older OpenCV versions
-            self.output_layers = [self.layer_names[i[0] - 1] for i in unconnected]
+    #     # Fix for different OpenCV versions
+    #     unconnected = self.net.getUnconnectedOutLayers()
+    #     if len(unconnected.shape) == 1:
+    #         # OpenCV 4.5.4+
+    #         self.output_layers = [self.layer_names[i - 1] for i in unconnected]
+    #     else:
+    #         # Older OpenCV versions
+    #         self.output_layers = [self.layer_names[i[0] - 1] for i in unconnected]
         
-        with open(classes_path, "r") as f:
-            self.classes = [line.strip() for line in f.readlines()]
+    #     with open(classes_path, "r") as f:
+    #         self.classes = [line.strip() for line in f.readlines()]
 
     def detect_people(self, frame):
         """
-        Run YOLO detection on frame
+        Run YOLOv8 detection on frame
         
         Args:
             frame: Input image as numpy array
             
         Returns:
-            tuple: (outputs from YOLO, frame height, frame width)
+            tuple: (YOLO results, frame height, frame width)
         """
         height, width, _ = frame.shape
-        blob = cv2.dnn.blobFromImage(frame, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
-        self.net.setInput(blob)
-        outs = self.net.forward(self.output_layers)
-        return outs, height, width
-
-    def process_frame(self, frame, outs, width, height, threshold=0.5):
+        
+        # Run inference (class 0 = person in COCO dataset)
+        results = self.model(frame, classes=[0], verbose=False)
+        
+        return results, height, width
+    
+    def process_frame(self, frame, results, width, height, threshold=0.5):
         """
-        Process YOLO outputs to extract person bounding boxes
+        Process YOLOv8 results to extract person bounding boxes
         
         Args:
             frame: Input image
-            outs: YOLO network outputs
+            results: YOLOv8 detection results
             width: Frame width
             height: Frame height
             threshold: Confidence threshold (default 0.5)
@@ -62,29 +67,36 @@ class SocialDistancingDetector:
         boxes = []
         centroids = []
         
-        for out in outs:
-            for detection in out:
-                scores = detection[5:]
-                class_id = np.argmax(scores)
-                confidence = scores[class_id]
-                
-                # Filter for person class (class_id = 0) with sufficient confidence
-                if confidence > threshold and class_id == 0:
-                    # Convert normalized coordinates to pixels
-                    center_x = int(detection[0] * width)
-                    center_y = int(detection[1] * height)
-                    w = int(detection[2] * width)
-                    h = int(detection[3] * height)
+        # YOLOv8 returns results in a list
+        for result in results:
+            # Access detection boxes
+            if result.boxes is not None and len(result.boxes) > 0:
+                for box in result.boxes:
+                    # Get confidence
+                    conf = float(box.conf[0])
                     
-                    # Calculate top-left corner
-                    x = int(center_x - w / 2)
-                    y = int(center_y - h / 2)
-                    
-                    boxes.append([x, y, w, h])
-                    centroids.append((center_x, center_y))
+                    # Filter by confidence threshold
+                    if conf > threshold:
+                        # Get bounding box coordinates (xyxy format)
+                        x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
+                        
+                        # Convert to xywh format
+                        x = int(x1)
+                        y = int(y1)
+                        w = int(x2 - x1)
+                        h = int(y2 - y1)
+                        
+                        # Calculate centroid
+                        center_x = int(x + w / 2)
+                        center_y = int(y + h / 2)
+                        
+                        # Validate bounding box
+                        if w > 0 and h > 0 and x >= 0 and y >= 0:
+                            boxes.append([x, y, w, h])
+                            centroids.append((center_x, center_y))
         
         return boxes, centroids
-
+    
     def check_distancing(self, centroids, threshold=100):
         """
         Check for social distancing violations

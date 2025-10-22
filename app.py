@@ -9,11 +9,12 @@ app = Flask(__name__)
 
 # Initialize video camera and detector
 camera = VideoCamera(Config.CAMERA_ID)
-detector = SocialDistancingDetector(
-    Config.YOLO_WEIGHTS,
-    Config.YOLO_CONFIG,
-    Config.YOLO_CLASSES
-)
+# detector = SocialDistancingDetector(
+#     Config.YOLO_WEIGHTS,
+#     Config.YOLO_CONFIG,
+#     Config.YOLO_CLASSES
+# )
+detector = SocialDistancingDetector()
 
 def generate_frames():
     """
