@@ -19,11 +19,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application
 COPY . .
 
-# Download YOLO files
-RUN wget -q https://pjreddie.com/media/files/yolov3.weights && 
-    # wget -q https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3.cfg && \
-    # wget -q https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names
-
 # Expose port
 EXPOSE 10000
 
