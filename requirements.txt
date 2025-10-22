@@ -8,7 +8,7 @@ Flask==3.0.0
 ultralytics==8.3.0
 numpy==1.24.3
 scipy==1.11.4
-opencv-python-headless==4.10.0
+opencv-python-headless
 imutils==0.5.4
 gunicorn==21.2.0
 torch==2.1.0
